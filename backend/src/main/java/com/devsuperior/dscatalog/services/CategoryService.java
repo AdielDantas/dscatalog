@@ -29,7 +29,7 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
         Category category = repository.findById(id).orElseThrow(
-                () -> new ResourcerNotFoundException("Recurso não localizada"));
+                () -> new ResourcerNotFoundException("Recurso não localizad0"));
         return new CategoryDTO(category);
     }
 
