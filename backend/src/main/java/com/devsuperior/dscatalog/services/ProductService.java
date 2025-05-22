@@ -1,7 +1,10 @@
 package com.devsuperior.dscatalog.services;
 
+import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.dto.ProductDTO;
+import com.devsuperior.dscatalog.entities.Category;
 import com.devsuperior.dscatalog.entities.Product;
+import com.devsuperior.dscatalog.repositores.CategoryRepository;
 import com.devsuperior.dscatalog.repositores.ProductRepository;
 import com.devsuperior.dscatalog.services.exceptions.DataBaseException;
 import com.devsuperior.dscatalog.services.exceptions.ResourcerNotFoundException;
@@ -20,6 +23,9 @@ public class ProductService {
     @Autowired
     private ProductRepository repository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @Transactional(readOnly = true)
     public Page<ProductDTO> findAllPaged (Pageable pageable) {
         Page<Product> list = repository.findAll(pageable);
@@ -29,7 +35,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
         Product product = repository.findById(id).orElseThrow(
-                () -> new ResourcerNotFoundException("Recurso não localizad0"));
+                () -> new ResourcerNotFoundException("Recurso não localizado"));
         return new ProductDTO(product, product.getCategories());
     }
 
@@ -73,6 +79,12 @@ public class ProductService {
         product.setPrice(dto.getPrice());
         product.setImgUrl(dto.getImgUrl());
         product.setDate(dto.getDate());
+
+        product.getCategories().clear();
+        for (CategoryDTO catDto : dto.getCategories()) {
+            Category category = categoryRepository.getReferenceById(catDto.getId());
+            product.getCategories().add(category);
+        }
     }
 
 }
