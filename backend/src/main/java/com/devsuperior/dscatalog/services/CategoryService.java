@@ -4,7 +4,7 @@ import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.entities.Category;
 import com.devsuperior.dscatalog.repositores.CategoryRepository;
 import com.devsuperior.dscatalog.services.exceptions.DataBaseException;
-import com.devsuperior.dscatalog.services.exceptions.ResourcerNotFoundException;
+import com.devsuperior.dscatalog.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -29,7 +29,7 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
         Category category = repository.findById(id).orElseThrow(
-                () -> new ResourcerNotFoundException("Recurso não localizad0"));
+                () -> new ResourceNotFoundException("Recurso não localizad0"));
         return new CategoryDTO(category);
     }
 
@@ -50,14 +50,14 @@ public class CategoryService {
             return new CategoryDTO(category);
         }
         catch (EntityNotFoundException e) {
-            throw new ResourcerNotFoundException("Id não localizado: " + id);
+            throw new ResourceNotFoundException("Id não localizado: " + id);
         }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new ResourcerNotFoundException("Id não localizado: " + id);
+            throw new ResourceNotFoundException("Id não localizado: " + id);
         }
         try {
             repository.deleteById(id);
