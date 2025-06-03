@@ -1,6 +1,5 @@
-package com.devsuperior.dscatalog.controlleers;
+package com.devsuperior.dscatalog.controllers;
 
-import com.devsuperior.dscatalog.controllers.ProductController;
 import com.devsuperior.dscatalog.dto.ProductDTO;
 import com.devsuperior.dscatalog.services.ProductService;
 import com.devsuperior.dscatalog.services.exceptions.DataBaseException;
