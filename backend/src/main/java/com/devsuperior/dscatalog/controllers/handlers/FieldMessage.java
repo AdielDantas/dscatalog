@@ -1,4 +1,4 @@
-package com.devsuperior.dscatalog.dto;
+package com.devsuperior.dscatalog.controllers.handlers;
 
 public class FieldMessage {
 
