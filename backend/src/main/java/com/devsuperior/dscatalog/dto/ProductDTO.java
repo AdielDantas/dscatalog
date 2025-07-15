@@ -2,6 +2,7 @@ package com.devsuperior.dscatalog.dto;
 
 import com.devsuperior.dscatalog.entities.Category;
 import com.devsuperior.dscatalog.entities.Product;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
@@ -14,10 +15,12 @@ import java.util.Set;
 
 public class ProductDTO {
 
+    @Schema(description = "Database generated movie ID")
     private Long id;
 
     @Size(min = 5, max = 60, message = "O nome deve conter entre 5 e 60 caracteres")
     @NotBlank(message = "Campo requerido")
+    @Schema(description = "Product name")
     private String name;
 
     @NotBlank(message = "Campo requerido")
