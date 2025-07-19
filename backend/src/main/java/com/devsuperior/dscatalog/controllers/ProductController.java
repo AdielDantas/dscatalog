@@ -35,10 +35,10 @@ public class ProductController {
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<ProductDTO>> findAll(
-            @RequestParam(value = "name", defaultValue = "") String name,
             @RequestParam(value = "categoryId", defaultValue = "0") String categoryId,
+            @RequestParam(value = "name", defaultValue = "") String name,
             Pageable pageable) {
-        Page<ProductDTO> list = service.findAllPaged(name, categoryId, pageable);
+        Page<ProductDTO> list = service.findAllPaged(categoryId, name, pageable);
         return ResponseEntity.ok().body(list);
     }
 

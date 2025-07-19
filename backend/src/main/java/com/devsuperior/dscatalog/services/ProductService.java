@@ -1,5 +1,9 @@
 package com.devsuperior.dscatalog.services;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import com.devsuperior.dscatalog.controllers.ProductController;
 import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.dto.ProductDTO;
 import com.devsuperior.dscatalog.entities.Category;
@@ -34,27 +38,44 @@ public class ProductService {
     private CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(Pageable pageable) {
-        Page<Product> list = repository.findAll(pageable);
-        return list.map(x -> new ProductDTO(x));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Transactional(readOnly = true)
     public Page<ProductDTO> findAllPaged(String categoryId, String name, Pageable pageable) {
 
+        // Prepara o filtro por categorias
         List<Long> categoryIds = new ArrayList<>();
         if (!"0".equals(categoryId)) {
-            categoryIds = Arrays.asList(categoryId.split(",")).stream().map(Long::parseLong).toList();
+            categoryIds = Arrays.stream(categoryId.split(","))
+                    .map(Long::parseLong)
+                    .toList();
         }
 
+        // Busca paginada por projeções
         Page<ProductProjection> page = repository.searchProducts(categoryIds, name.trim(), pageable);
-        List<Long> productIds = page.map(x -> x.getId()).toList();
 
+        // Pega os IDs para buscar os produtos completos com categorias
+        List<Long> productIds = page.map(ProductProjection::getId).toList();
         List<Product> entities = repository.searchProductsWithCategories(productIds);
-        entities = (List<Product>) Utils.replace(page.getContent(), entities);
-        List<ProductDTO> dtos = entities.stream().map(p -> new ProductDTO(p, p.getCategories())).toList();
 
+        // Reorganiza os produtos completos mantendo a ordem original
+        entities = (List<Product>) Utils.replace(page.getContent(), entities);
+
+        // Mapeia para DTOs e adiciona links HATEOAS manualmente
+        List<ProductDTO> dtos = entities.stream().map(product -> {
+            ProductDTO dto = new ProductDTO(product, product.getCategories());
+
+            // Link para este próprio recurso (self)
+            dto.add(linkTo(methodOn(ProductController.class)
+                    .findAll(categoryId, name, pageable))
+                    .withSelfRel());
+
+            // Link para buscar produtos por Id
+            dto.add(linkTo(methodOn(ProductController.class)
+                    .findById(product.getId()))
+                    .withRel("Get products by Id"));
+
+            return dto;
+        }).toList();
+
+        // 6. Retorna a página com os DTOs com HATEOAS
         return new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());
     }
 
@@ -62,7 +83,18 @@ public class ProductService {
     public ProductDTO findById(Long id) {
         Product product = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Recurso não localizado"));
-        return new ProductDTO(product, product.getCategories());
+        ProductDTO dto = new ProductDTO(product, product.getCategories());
+
+                dto.add(linkTo(methodOn(ProductController.class).findById(id)).withSelfRel());
+                dto.add(linkTo(methodOn(ProductController.class).findAll(null, null, null)).withRel("All products"));
+
+        try {
+            dto.add(linkTo(methodOn(ProductController.class).update(id, null)).withRel("Update product"));
+            dto.add(linkTo(methodOn(ProductController.class).delete(id)).withRel("Delete product"));
+        }
+        catch (Exception e) {}
+
+        return dto;
     }
 
     @Transactional
@@ -70,7 +102,8 @@ public class ProductService {
         Product product = new Product();
         copyDtoToEntity(dto, product);
         product = repository.save(product);
-        return new ProductDTO(product);
+        return new ProductDTO(product)
+                .add(linkTo(methodOn(ProductController.class).findById(product.getId())).withRel("Get product by Id"));
     }
 
     @Transactional
@@ -79,7 +112,8 @@ public class ProductService {
             Product product = repository.getReferenceById(id);
             copyDtoToEntity(dto, product);
             product = repository.save(product);
-            return new ProductDTO(product);
+            return new ProductDTO(product)
+                    .add(linkTo(methodOn(ProductController.class).findById(product.getId())).withRel("Get product by Id"));
         }
         catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id não localizado: " + id);

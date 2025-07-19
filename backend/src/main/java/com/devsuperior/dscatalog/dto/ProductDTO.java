@@ -7,13 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class ProductDTO {
+public class ProductDTO extends RepresentationModel<ProductDTO> {
 
     @Schema(description = "Database generated movie ID")
     private Long id;
